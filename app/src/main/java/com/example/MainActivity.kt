@@ -31,6 +31,7 @@ import com.example.ui.screens.CameraScreen
 import com.example.ui.screens.ImageScreen
 import com.example.ui.screens.MenuSheet
 import com.example.ui.screens.SettingsScreen
+import com.example.ui.screens.TabSwitcherScreen
 import com.example.ui.theme.Ink
 import com.example.ui.theme.TransLensTheme
 import com.example.ui.viewmodel.FrameSource
@@ -57,7 +58,13 @@ fun TransLensApp(viewModel: TransLensViewModel = viewModel()) {
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
     val bookmarks by viewModel.bookmarks.collectAsStateWithLifecycle()
     val history by viewModel.history.collectAsStateWithLifecycle()
-    val controller = remember { BrowserController() }
+    val controller = remember {
+        BrowserController().apply {
+            homeUrl = ui.browser.searchEngine.template.substringBefore("/search").substringBefore("/?q")
+            if (!restore(viewModel.savedTabs())) newTab(ui.homeUrl)
+            onChanged = { viewModel.saveTabs(toJson()) }
+        }
+    }
     val context = LocalContext.current
     var menuOpen by remember { mutableStateOf(false) }
 
@@ -72,16 +79,18 @@ fun TransLensApp(viewModel: TransLensViewModel = viewModel()) {
         // The browser stays alive underneath so the page isn't reloaded after camera/photo
         BrowserScreen(
             controller = controller,
-            startUrl = ui.homeUrl,
             browserSettings = ui.browser,
             adBlocker = viewModel.adBlocker,
             liveEnabled = ui.liveEnabled,
             status = if (ui.screen == Screen.BROWSER) ui.status else null,
             onToggleLive = viewModel::toggleLive,
             translateFrame = { viewModel.translateFrame(it, FrameSource.BROWSER) },
+            onTranslateImageUrl = viewModel::translateImageUrl,
             onPageVisited = viewModel::onPageVisited,
             onOpenMenu = { menuOpen = true }
         )
+
+        if (controller.switcherOpen) TabSwitcherScreen(controller)
 
         when (ui.screen) {
             Screen.IMAGE -> ui.imageBitmap?.let { bitmap ->
@@ -140,6 +149,7 @@ fun TransLensApp(viewModel: TransLensViewModel = viewModel()) {
                     context.startActivity(Intent.createChooser(send, null))
                 },
                 onFind = { controller.findMode = true },
+                onNewTab = { controller.newTab(focusAddressBar = true) },
                 onSetDesktop = { on -> viewModel.updateBrowser { it.copy(desktopMode = on) } },
                 onOpenUrl = { controller.load(it) },
                 onCamera = viewModel::openCamera,

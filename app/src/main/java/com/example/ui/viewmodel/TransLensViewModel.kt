@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import android.webkit.CookieManager
+import android.webkit.WebSettings
 import android.webkit.WebStorage
 import com.example.data.adblock.AdBlocker
 import com.example.data.adblock.FilterList
@@ -200,6 +201,40 @@ class TransLensViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun openSettings() = _uiState.update { it.copy(screen = Screen.SETTINGS) }
+
+    // ---- tabs ----------------------------------------------------------------------------------
+
+    fun savedTabs(): String? = prefs.getString("tabs", null)
+
+    fun saveTabs(json: String) = prefs.edit().putString("tabs", json).apply()
+
+    /** Long-pressed image on a page: fetch it (with the page's cookies) and translate it. */
+    fun translateImageUrl(url: String) {
+        viewModelScope.launch {
+            showStatus("Loading image…", sticky = true)
+            val bitmap = withContext(Dispatchers.IO) {
+                runCatching {
+                    if (url.startsWith("data:")) {
+                        val bytes = android.util.Base64.decode(url.substringAfter(","), android.util.Base64.DEFAULT)
+                        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    } else {
+                        val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+                        conn.setRequestProperty("User-Agent", WebSettings.getDefaultUserAgent(getApplication()))
+                        CookieManager.getInstance().getCookie(url)?.let { conn.setRequestProperty("Cookie", it) }
+                        conn.connectTimeout = 10_000
+                        conn.readTimeout = 20_000
+                        try {
+                            conn.inputStream.use { android.graphics.BitmapFactory.decodeStream(it) }
+                        } finally {
+                            conn.disconnect()
+                        }
+                    }
+                }.getOrNull()
+            }
+            clearStatus()
+            if (bitmap == null) showStatus("Couldn't load that image") else translateImage(bitmap)
+        }
+    }
 
     // ---- settings ----------------------------------------------------------------------------
 

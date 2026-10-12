@@ -347,4 +347,5 @@ private fun Section(title: String) {
 }
 
 private fun ago(time: Long): String =
-    DateUtils.getRelativeTimeSpanString(time, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString().lowercase()
+    if (System.currentTimeMillis() - time < DateUtils.MINUTE_IN_MILLIS) "just now"
+    else DateUtils.getRelativeTimeSpanString(time, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString().lowercase()

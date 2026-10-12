@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DesktopWindows
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -71,6 +72,7 @@ fun MenuSheet(
     onBookmark: () -> Unit,
     onShare: () -> Unit,
     onFind: () -> Unit,
+    onNewTab: () -> Unit,
     onSetDesktop: (Boolean) -> Unit,
     onOpenUrl: (String) -> Unit,
     onCamera: () -> Unit,
@@ -114,6 +116,7 @@ fun MenuSheet(
                         )
                     }
                     MenuDivider()
+                    MenuRow(Icons.Default.Add, "New tab") { onNewTab(); onDismiss() }
                     MenuRow(Icons.Default.Search, "Find in page") { onFind(); onDismiss() }
                     MenuRow(
                         Icons.Default.DesktopWindows,
