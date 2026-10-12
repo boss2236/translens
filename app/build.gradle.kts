@@ -16,9 +16,6 @@ android {
     versionName = "2.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-    // 64-bit phones + x86_64 emulator only; keeps native ML libraries out of unused ABIs
-    ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
   }
 
   signingConfigs {
@@ -35,8 +32,16 @@ android {
   }
 
   buildTypes {
+    debug {
+      // 64-bit phones + the x86_64 emulator
+      ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+    }
     release {
-      isMinifyEnabled = false
+      // 64-bit ARM phones only; keeps native ML libraries out of unused ABIs
+      ndk { abiFilters += listOf("arm64-v8a") }
+      // R8 strips unused code (icons, Compose debug pieces) — roughly halves the APK
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
     }
