@@ -42,6 +42,45 @@ Requirements: JDK 17+ and the Android SDK (platform 36).
 Release builds are signed with the key in `KEYSTORE_PATH` / `STORE_PASSWORD` / `KEY_ALIAS` /
 `KEY_PASSWORD` when set, otherwise with the local debug key.
 
+## Security notes
+
+- Offline OCR, language detection, and translation use on-device ML Kit models.
+- Online translation is optional. When enabled, recognized text is sent over
+  HTTPS to Google Translate's public web endpoint. Do not use online mode for
+  sensitive text that should not leave the device.
+- Browsing history, translation cache, and downloaded filter lists are stored
+  in the app's private storage. Clear browsing data from Settings before
+  sharing a device or a debug build.
+- Filter lists are downloaded from their configured URLs and are treated as
+  untrusted input. Only use sources you trust, and review custom URLs before
+  enabling them.
+- Never commit keystores, passwords, tokens, private test data, or generated
+  build output. Keep release signing values in environment variables or a
+  local, untracked configuration.
+
+To report a security vulnerability, please avoid posting working exploit
+details publicly. Contact the maintainers privately through the repository's
+security contact or GitHub security reporting tools.
+
+## Collaboration
+
+1. Create a focused branch from `main`.
+2. Make the smallest change that solves the problem and add or update tests
+   when behavior changes.
+3. Run the relevant checks locally, at minimum `./gradlew testDebugUnitTest`.
+4. Open a pull request with a clear summary, testing notes, and any privacy or
+   security impact.
+
+Please keep pull requests focused, follow the existing Kotlin and Compose
+style, and do not include secrets, personal data, or unrelated formatting
+changes. Bug reports should include reproducible steps, device or emulator
+details, Android version, and relevant logs with private data removed.
+
+## License
+
+TransLens is licensed under the MIT License. See [LICENSE](LICENSE) for the
+full license text.
+
 ## Project layout
 
 ```
